@@ -4,11 +4,11 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const { body, validationResult } = require('express-validator');
 const jwt = require('jsonwebtoken');
-
+const fetchuser = require("../middleware/fetchuser")
 
 const JWT_SECRETE = 'vaibhav$kados'
 
-//Create a User using: POST "/api/auth/createuser". Dosen't require Auth
+//Route1 : Create a User using: POST "/api/auth/createuser". Dosen't require Auth
 
 
 
@@ -59,7 +59,7 @@ router.post('/createuser', [
 
 })
 
-//Create a User using: POST "/api/auth/login". Dosen't require Auth
+//Route2 : Create a User using: POST "/api/auth/login". Dosen't require Auth
 
 router.post('/login', [
      body('email', 'Enter a Valid Email').isEmail(),
@@ -79,7 +79,7 @@ router.post('/login', [
                return res.status(400).json({ error: "Please try to login with correct credentials" });
           }
 
-          const passwordCompare =await bcrypt.compare(password, user.password)
+          const passwordCompare = await bcrypt.compare(password, user.password)
 
           if (!passwordCompare) {
                return res.status(400).json({ error: "Please try to login with correct credentials" });
@@ -92,6 +92,18 @@ router.post('/login', [
 
           const authtoken = jwt.sign(data, JWT_SECRETE);
           res.json({ authtoken })
+     } catch (error) {
+          console.log(error.message)
+          res.status(500).send("Internal Server Error")
+     }
+})
+
+//Route3 : Get loggedin User using: POST "/api/auth/createuser". Dosen't require Auth
+router.post('/getuser', fetchuser, async (req, res) => {
+     try {
+          userId = req.user.id
+          const user = await User.findById(userId).select("-password")
+          res.send(user)
      } catch (error) {
           console.log(error.message)
           res.status(500).send("Internal Server Error")
